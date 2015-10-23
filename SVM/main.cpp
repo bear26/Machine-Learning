@@ -2,8 +2,6 @@
 #include <fstream>
 #include <algorithm>
 
-#include <opencv2/opencv.hpp>
-
 #include "data.h"
 #include "model.h"
 
