@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
          Model model;
 
-         //cross_validation(train_set, 5, 1);
+         cross_validation(train_set, 5, 1);
 
          model.train(train_set);
 

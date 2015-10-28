@@ -4,7 +4,7 @@
 #include <iostream>
 #include <cmath>
 
-#include <boost/multiprecision/cpp_dec_float.hpp>
+#include <opencv2/opencv.hpp>
 
 const int count_class = 2;
 
@@ -15,69 +15,82 @@ Model::Model()
 
 void Model::train(const Data &data)
 {
-    prob_.resize(count_class);
+    w_.resize(data[0].features().size());
 
-    std::vector<int> count_in_class(prob_.size());
+    std::generate(w_.begin(), w_.end(), []() { return 2 * double(rand()) / RAND_MAX - 1.0; });
 
-    for(const Object obj : data)
+    cv::Mat_<double> f(data.size(), data[0].features().size());
+    cv::Mat_<double> y(data.size(), 1);
+
+    for(size_t i = 0; i < data.size(); ++i)
     {
-        for(auto v : obj.body())
+        for(size_t j = 0; j < data[i].features().size(); ++j)
         {
-            if (prob_[obj.label()].find(v) == prob_[obj.label()].end())
-            {
-                prob_[obj.label()][v] = 0;
-            }
-
-            ++prob_[obj.label()][v];
-
-            ++count_in_class[obj.label()];
+            f(i, j) = data[i].features()[j];
         }
 
-        for(auto v : obj.subject())
-        {
-            if (prob_[obj.label()].find(v) == prob_[obj.label()].end())
-            {
-                prob_[obj.label()][v] = 0;
-            }
-
-            // weight subject more than body
-            prob_[obj.label()][v] += 5;
-
-            count_in_class[obj.label()] += 5;
-        }
+        y(i, 0) = data[i].label();
     }
 
-    for(size_t i = 0; i < prob_.size(); ++i)
+    while(true)
     {
-        for(auto it : prob_[i])
+        cv::Mat_<double> sigma(data.size(), 1);
+
+        for(size_t i = 0; i < data.size(); ++i)
         {
-            prob_[i][it.first] /= count_in_class[i];
+            double sig = 0;
+            for(size_t j = 0; j < data[i].features().size(); ++j)
+            {
+                sig += data[i].features()[j] * w_[j];
+            }
+
+            sig *= data[i].label();
+
+            sig = 1 / (1 + std::exp(-sig));
+
+            sigma(i, 0) = std::sqrt((1 - sig) * sig);
         }
+
+        cv::Mat_<double> g = cv::Mat::diag(sigma);
+
+        cv::Mat_<double> f_wave = g * f;
+
+        cv::transpose(f_wave, f_wave);
+
+        cv::Mat_<double> y_wave = y.mul(sigma);
+
+        cv::Mat_<double> newton_direction = f_wave * y_wave;
+
+        double diff = 0;
+
+        for(size_t i = 0; i < w_.size(); ++i)
+        {
+            w_[i] += newton_direction(i, 0);
+
+            diff += std::pow(newton_direction(i, 0), 2);
+        }
+
+        if (diff < 1e-4)
+        {
+            break;
+        }
+
+        //std::cout << diff << std::endl;
     }
 }
 
 int Model::predict(const Object &object) const
 {
-    std::vector<boost::multiprecision::cpp_dec_float_100> ans(count_class);
+    std::vector<double> features = object.features();
 
-    // spam probability less than leggit message
-    ans[0] = 0.3;
-    ans[1] = 0.7;
+    double cost = 0;
 
-    for(size_t i = 0; i < ans.size(); ++i)
+    for(size_t i = 0; i < features.size(); ++i)
     {
-        for(auto v : object.body())
-        {
-            ans[i] *= (prob_[i].find(v) != prob_[i].end()) ? -std::log(prob_[i].at(v)) : 1;
-        }
-
-        for(auto v : object.subject())
-        {
-            ans[i] *= (prob_[i].find(v) != prob_[i].end()) ? -std::log(prob_[i].at(v)) : 1;
-        }
+        cost += features[i] * w_[i];
     }
 
-    return std::distance(ans.begin(), std::max_element(ans.begin(), ans.end()));
+    return (cost < 0) ? -1 : 1;
 }
 
 std::vector<std::pair<int, int> > Model::test(const Data &data) const
@@ -136,16 +149,6 @@ double print_result(const std::vector<std::pair<int, int> > &result)
     for(auto pair : result)
     {
         conf_matrix[std::max(0, pair.first)][std::max(0, pair.second)]++;
-    }
-
-    for(size_t i = 0; i < conf_matrix.size(); ++i)
-    {
-        for(size_t j = 0; j < conf_matrix[i].size(); ++j)
-        {
-            printf("%4d", conf_matrix[i][j]);
-        }
-
-        printf("\n");
     }
 
     for(size_t i = 0; i < conf_matrix.size(); ++i)
