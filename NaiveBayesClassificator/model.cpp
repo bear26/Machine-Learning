@@ -68,12 +68,12 @@ int Model::predict(const Object &object) const
     {
         for(auto v : object.body())
         {
-            ans[i] *= (prob_[i].find(v) != prob_[i].end()) ? -std::log(prob_[i].at(v)) : 1;
+            ans[i] += (prob_[i].find(v) != prob_[i].end()) ? -std::log(prob_[i].at(v)) : 0;
         }
 
         for(auto v : object.subject())
         {
-            ans[i] *= (prob_[i].find(v) != prob_[i].end()) ? -std::log(prob_[i].at(v)) : 1;
+            ans[i] += (prob_[i].find(v) != prob_[i].end()) ? -std::log(prob_[i].at(v)) : 0;
         }
     }
 
