@@ -14,7 +14,7 @@ Model::Model()
 
 void Model::train(const Data &data)
 {
-    const int num_trees = 23;
+    const int num_trees = 31;
     forest_.resize(num_trees);
 
 #pragma omp parallel for
