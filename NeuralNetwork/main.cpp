@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 
         Model model;
 
-        model.train(data);
+        model.train(data, argv[4]);
 
         model.save(argv[4]);
     }

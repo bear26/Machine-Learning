@@ -10,7 +10,7 @@ class Model
 public:
     Model();
 
-    void train(const Data &data);
+    void train(const Data &data, const std::string &snapshot);
 
     void learn_on_object(const Object &obj);
 

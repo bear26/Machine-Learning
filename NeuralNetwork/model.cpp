@@ -15,7 +15,7 @@ Model::Model()
 
 }
 
-void Model::train(const Data &data)
+void Model::train(const Data &data, const std::string &snapshot)
 {
     const int count_train_step = 60000 * 10000;
 
@@ -55,7 +55,7 @@ void Model::train(const Data &data)
         if (i && i % 60000 == 0)
         {
             std::cout << "SAVE" << std::endl;
-            save("/home/yura/Documents/C++/programs/Machine Learning/NeuralNetwork/weight");
+            save(snapshot);
         }
     }
 }
