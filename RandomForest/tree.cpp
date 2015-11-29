@@ -108,7 +108,7 @@ void Tree::get_best_split_(const Data &data, const std::vector<int> &mask)
     double best_score = std::numeric_limits<double>::max();
 
     int best_features_split = -1;
-    double best_seporator = 0;
+    double best_separator = 0;
 
     for(auto f : mask)
     {
@@ -136,7 +136,7 @@ void Tree::get_best_split_(const Data &data, const std::vector<int> &mask)
                 continue;
             }
 
-            seporator_ = (prev + v) / 2;
+            separator_ = (prev + v) / 2;
 
             Data left, right;
 
@@ -149,18 +149,18 @@ void Tree::get_best_split_(const Data &data, const std::vector<int> &mask)
                 best_score = gini;
 
                 best_features_split = f;
-                best_seporator = seporator_;
+                best_separator = separator_;
             }
         }
     }
 
-    seporator_ = best_seporator;
+    separator_ = best_separator;
     num_split_features_ = best_features_split;
 }
 
 bool Tree::concept_true_(const Object &obj) const
 {
-    return obj.features()[num_split_features_] > seporator_;
+    return obj.features()[num_split_features_] > separator_;
 }
 
 void Tree::split_(const Data &data, Data &left, Data &right) const

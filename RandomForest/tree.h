@@ -16,7 +16,7 @@ public:
 
 private:
     int num_split_features_;
-    double seporator_;
+    double separator_;
 
     int label_;
 
