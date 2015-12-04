@@ -2,7 +2,6 @@
 #include <vector>
 #include <fstream>
 #include <cmath>
-#include <functional>
 
 #include "model.h"
 

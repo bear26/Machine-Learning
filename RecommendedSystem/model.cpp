@@ -64,18 +64,23 @@ void Model::solve(const Data &data)
     std::random_shuffle(ratings.begin(), ratings.end());
 
     //maybe not once
-    for(auto it : ratings)
+    for(int step = 0; step < 100; ++step)
     {
-        int user_id = it.first.first;
-        int movie_id = it.first.second;
+        for(auto it : ratings)
+        {
+            int user_id = it.first.first;
+            int movie_id = it.first.second;
 
-        double e = it.second - predict_(user_id, movie_id);
+            double e = it.second - predict_(user_id, movie_id);
 
-        bu_[user_id] += step1 * (e - lamda1 * bu_[user_id]);
-        bi_[movie_id] += step1 * (e - lamda1 * bi_[movie_id]);
+            bu_[user_id] += step1 * (e - lamda1 * bu_[user_id]);
+            bi_[movie_id] += step1 * (e - lamda1 * bi_[movie_id]);
 
-        q_[movie_id] = q_[movie_id] + step2 * (e * p_[user_id] - lamda2 * q_[movie_id]);
-        p_[user_id] = p_[user_id] + step2 * (e * q_[movie_id] - lamda2 * p_[user_id]);
+            std::vector<double> temp = q_[movie_id];
+
+            q_[movie_id] = q_[movie_id] + step2 * (e * p_[user_id] - lamda2 * q_[movie_id]);
+            p_[user_id] = p_[user_id] + step2 * (e * temp - lamda2 * p_[user_id]);
+        }
     }
 }
 
